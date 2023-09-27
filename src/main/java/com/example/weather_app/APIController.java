@@ -1,5 +1,6 @@
 package com.example.weather_app;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,11 +15,13 @@ public class APIController {
 
     private String nx = "60";    //위도
     private String ny = "125";    //경도
-    private String serviceKey = "c4c6e97b87c718cead1d6f6b7b6e5182";
+
+    @Value("${weather-API-Key}")
+    private String serviceKey;
 
     @RequestMapping("/")
     public String hello() throws IOException {
-        URL url = new URL(String.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s", nx, ny, serviceKey));
+        URL url = new URL(String.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&lang=kr&units=Metric", nx, ny, serviceKey));
         // HttpURLConnection 객체를 만들어 API를 호출합니다.
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         // 요청 방식을 GET으로 설정합니다.
