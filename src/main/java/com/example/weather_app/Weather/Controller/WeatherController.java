@@ -1,8 +1,8 @@
-package com.example.weather_app;
+package com.example.weather_app.Weather.Controller;
 
+import com.example.weather_app.Weather.domain.Weather;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,17 +11,25 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 @RestController
-public class APIController {
+public class WeatherController {
 
-    private String nx = "60";    //위도
-    private String ny = "125";    //경도
+    private String latitude = "60";    //위도
+    private String longitude = "125";    //경도
 
     @Value("${weather-API-Key}")
     private String serviceKey;
 
-    @RequestMapping("/")
-    public String hello() throws IOException {
-        URL url = new URL(String.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&lang=kr&units=Metric", nx, ny, serviceKey));
+    @RequestMapping(value = "/")
+    public String currWeather(@RequestBody Weather weather) throws IOException {
+        String latitude = weather.getLatitude();
+        String longitude = weather.getLongitude();
+        if(weather.getLatitude().equals("") || weather.getLatitude() == null) {
+            latitude = this.latitude;
+        }
+        if(weather.getLongitude().equals("") || weather.getLongitude() == null) {
+            longitude = this.longitude;
+        }
+        URL url = new URL(String.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&lang=kr&units=Metric", latitude, longitude, serviceKey));
         // HttpURLConnection 객체를 만들어 API를 호출합니다.
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         // 요청 방식을 GET으로 설정합니다.
