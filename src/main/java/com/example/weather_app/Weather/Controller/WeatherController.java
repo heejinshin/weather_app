@@ -19,7 +19,7 @@ public class WeatherController {
     @Value("${weather-API-Key}")
     private String serviceKey;
 
-    @RequestMapping(value = "/")
+    @RequestMapping(value = "/curr-weather")
     public String currWeather(@RequestBody Weather weather) throws IOException {
         String latitude = weather.getLatitude();
         String longitude = weather.getLongitude();
