@@ -13,23 +13,26 @@ import java.net.URL;
 @RestController
 public class WeatherController {
 
-    private String latitude = "60";    //위도
-    private String longitude = "125";    //경도
+    private String latitude = "60"; // 위도
+    private String longitude = "125"; // 경도
 
     @Value("${weather-API-Key}")
     private String serviceKey;
 
     @RequestMapping(value = "/curr-weather")
+    @CrossOrigin(origins = "*")
     public String currWeather(@RequestBody Weather weather) throws IOException {
         String latitude = weather.getLatitude();
         String longitude = weather.getLongitude();
-        if(weather.getLatitude().equals("") || weather.getLatitude() == null) {
+        if (weather.getLatitude().equals("") || weather.getLatitude() == null) {
             latitude = this.latitude;
         }
-        if(weather.getLongitude().equals("") || weather.getLongitude() == null) {
+        if (weather.getLongitude().equals("") || weather.getLongitude() == null) {
             longitude = this.longitude;
         }
-        URL url = new URL(String.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&lang=kr&units=Metric", latitude, longitude, serviceKey));
+        URL url = new URL(String.format(
+                "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&lang=kr&units=Metric", latitude,
+                longitude, serviceKey));
         // HttpURLConnection 객체를 만들어 API를 호출합니다.
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         // 요청 방식을 GET으로 설정합니다.
@@ -49,6 +52,8 @@ public class WeatherController {
         }
         // BufferedReader를 닫습니다.
         in.close();
+
+        System.out.println(response);
 
         // 응답을 출력합니다.
         return response.toString();
