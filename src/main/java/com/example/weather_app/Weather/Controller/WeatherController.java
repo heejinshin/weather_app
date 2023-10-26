@@ -1,12 +1,15 @@
 package com.example.weather_app.Weather.Controller;
 
-import com.example.weather_app.Weather.domain.Weather;
+import com.example.weather_app.Weather.Domain.Weather;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -44,18 +47,55 @@ public class WeatherController {
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream()));
         String inputLine;
-        StringBuffer response = new StringBuffer();
+        StringBuffer strBuffer = new StringBuffer();
 
         // 응답을 한 줄씩 읽어들이면서 StringBuffer에 추가합니다.
         while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+            strBuffer.append(inputLine);
         }
         // BufferedReader를 닫습니다.
         in.close();
 
-        System.out.println(response);
+        JSONObject jo = new JSONObject(strBuffer.toString());
 
-        // 응답을 출력합니다.
+        // 필요한 값만 추출
+        JSONArray weaArr = (JSONArray) jo.get("weather");
+        JSONObject weaObj = weaArr.getJSONObject(0);
+        JSONObject mainObj = (JSONObject) jo.get("main");
+        JSONObject windObj = (JSONObject) jo.get("wind");
+        JSONObject response = new JSONObject();
+
+        String name = (String) jo.get("name");
+        Integer id = (Integer) weaObj.get("id");
+        String description = (String) weaObj.get("description");
+        BigDecimal temp = (BigDecimal) mainObj.get("temp");
+        BigDecimal feels_like = (BigDecimal) mainObj.get("feels_like");
+        BigDecimal temp_min = (BigDecimal) mainObj.get("temp_min");
+        BigDecimal temp_max = (BigDecimal) mainObj.get("temp_max");
+        BigDecimal speed = (BigDecimal) windObj.get("speed");
+
+        BigDecimal rain_1h = new BigDecimal(0);
+        BigDecimal snow_1h = new BigDecimal(0);
+        {
+            if(!jo.isNull("rain")) {
+                rain_1h = (BigDecimal) ((JSONObject) jo.get("rain")).get("1h");
+            }
+            if(!jo.isNull("snow")) {
+                snow_1h = (BigDecimal) ((JSONObject) jo.get("rain")).get("1h");
+            }
+        }
+
+        response.put("name", name);
+        response.put("id", id);
+        response.put("description", description);
+        response.put("temp", temp);
+        response.put("feels_like", feels_like);
+        response.put("temp_min", temp_min);
+        response.put("temp_max", temp_max);
+        response.put("speed", speed);
+        response.put("rain_1h", rain_1h);
+        response.put("snow_1h", snow_1h);
+
         return response.toString();
     }
 }
