@@ -66,7 +66,10 @@ public class WeatherController {
         JSONObject response = new JSONObject();
 
         String name = (String) jo.get("name");
-        Integer id = (Integer) weaObj.get("id");
+        Integer rowId = (Integer) weaObj.get("id");
+        double id = rowId.doubleValue();
+        id = Math.floor(id * 0.01) * 100; // 100 자리로 보여주기 위해 컨버팅 처리
+
         String description = (String) weaObj.get("description");
         BigDecimal temp = (BigDecimal) mainObj.get("temp");
         BigDecimal feels_like = (BigDecimal) mainObj.get("feels_like");
