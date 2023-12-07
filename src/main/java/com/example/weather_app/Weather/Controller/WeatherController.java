@@ -44,6 +44,7 @@ public class WeatherController {
         URL url = new URL(String.format(
                 "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&lang=kr&units=Metric", latitude,
                 longitude, serviceKey));
+
         // HttpURLConnection 객체를 만들어 API를 호출합니다.
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         // 요청 방식을 GET으로 설정합니다.
@@ -56,6 +57,7 @@ public class WeatherController {
                 new InputStreamReader(con.getInputStream()));
         String inputLine;
         StringBuffer strBuffer = new StringBuffer();
+        StringBuffer airPmBuffer = new StringBuffer();
 
         // 응답을 한 줄씩 읽어들이면서 StringBuffer에 추가합니다.
         while ((inputLine = in.readLine()) != null) {
@@ -64,9 +66,34 @@ public class WeatherController {
         // BufferedReader를 닫습니다.
         in.close();
 
+        url = new URL(String.format(
+                "http://api.openweathermap.org/data/2.5/air_pollution?lat=%s&lon=%s&appid=%s", latitude,
+                longitude, serviceKey));
+
+        con = (HttpURLConnection) url.openConnection();
+
+        con.setRequestMethod("GET");
+        con.setRequestProperty("Content-Type", "application/json");
+
+        in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()));
+
+        while ((inputLine = in.readLine()) != null) {
+            airPmBuffer.append(inputLine);
+        }
+
+        in.close();
+
+        // 미세먼지 값 추출
+        JSONObject airPmJO = new JSONObject(airPmBuffer.toString());
+        JSONArray airPmList = (JSONArray) airPmJO.get("list");
+        JSONObject airPmObj = airPmList.getJSONObject(0);
+        JSONObject airPmComp = (JSONObject) airPmObj.get("components");
+        BigDecimal air = (BigDecimal) airPmComp.get("pm10");
+
         JSONObject jo = new JSONObject(strBuffer.toString());
 
-        // 필요한 값만 추출
+        // 날씨 값 추출
         JSONArray weaArr = (JSONArray) jo.get("weather");
         JSONObject weaObj = weaArr.getJSONObject(0);
         JSONObject mainObj = (JSONObject) jo.get("main");
@@ -121,6 +148,7 @@ public class WeatherController {
         response.put("speed", speed);
         response.put("rain_1h", rain_1h);
         response.put("snow_1h", snow_1h);
+        response.put("air", air);
 
         return response.toString();
     }
