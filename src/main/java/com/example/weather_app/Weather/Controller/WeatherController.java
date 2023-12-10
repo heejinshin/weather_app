@@ -133,14 +133,14 @@ public class WeatherController {
         Object temp_max = mainObj.get("temp_max");
         Object speed = windObj.get("speed");
 
-        BigDecimal rain_1h = new BigDecimal(0);
-        BigDecimal snow_1h = new BigDecimal(0);
+        Object rain_1h = 0;
+        Object snow_1h = 0;
         {
             if(!jo.isNull("rain")) {
-                rain_1h = (BigDecimal) ((JSONObject) jo.get("rain")).get("1h");
+                rain_1h = ((JSONObject) jo.get("rain")).get("1h");
             }
             if(!jo.isNull("snow")) {
-                snow_1h = (BigDecimal) ((JSONObject) jo.get("rain")).get("1h");
+                snow_1h = ((JSONObject) jo.get("rain")).get("1h");
             }
         }
 
