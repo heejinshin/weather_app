@@ -121,11 +121,17 @@ public class WeatherController {
         JSONObject papagoResult = new JSONObject(post("https://openapi.naver.com/v1/papago/n2mt", requestHeaders, regionName));
         String name = (String)((JSONObject)((JSONObject) papagoResult.get("message")).get("result")).get("translatedText");
 
-        BigDecimal temp = (BigDecimal) mainObj.get("temp");
-        BigDecimal feels_like = (BigDecimal) mainObj.get("feels_like");
-        BigDecimal temp_min = (BigDecimal) mainObj.get("temp_min");
-        BigDecimal temp_max = (BigDecimal) mainObj.get("temp_max");
-        BigDecimal speed = (BigDecimal) windObj.get("speed");
+        Object temp = mainObj.get("temp");
+
+        Object feels_like = new BigDecimal(0);
+        {
+            if (!mainObj.isNull("feels_like")) {
+                feels_like = mainObj.get("feels_like");
+            }
+        }
+        Object temp_min = mainObj.get("temp_min");
+        Object temp_max = mainObj.get("temp_max");
+        Object speed = windObj.get("speed");
 
         BigDecimal rain_1h = new BigDecimal(0);
         BigDecimal snow_1h = new BigDecimal(0);
@@ -154,8 +160,9 @@ public class WeatherController {
     }
 
     private String post(String apiUrl, Map<String, String> requestHeaders, String text){
+        System.out.println(text);
         HttpURLConnection con = connect(apiUrl);
-        String postParams = "source=en&target=ko&text=" + text; //원본언어: 한국어 (ko) -> 목적언어: 영어 (en)
+        String postParams = "source=en&target=ko&text=" + text; //원본언어: 영어 (en) -> 목적언어: 한국어 (kr)
         try {
             con.setRequestMethod("POST");
             for(Map.Entry<String, String> header :requestHeaders.entrySet()) {
