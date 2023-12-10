@@ -14,6 +14,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @RestController
 public class WeatherController {
@@ -57,7 +58,6 @@ public class WeatherController {
                 new InputStreamReader(con.getInputStream()));
         String inputLine;
         StringBuffer strBuffer = new StringBuffer();
-        StringBuffer airPmBuffer = new StringBuffer();
 
         // 응답을 한 줄씩 읽어들이면서 StringBuffer에 추가합니다.
         while ((inputLine = in.readLine()) != null) {
@@ -66,8 +66,10 @@ public class WeatherController {
         // BufferedReader를 닫습니다.
         in.close();
 
+        StringBuffer airPmBuffer = new StringBuffer();
+
         url = new URL(String.format(
-                "http://api.openweathermap.org/data/2.5/air_pollution?lat=%s&lon=%s&appid=%s", latitude,
+                "https://api.openweathermap.org/data/2.5/air_pollution?lat=%s&lon=%s&appid=%s", latitude,
                 longitude, serviceKey));
 
         con = (HttpURLConnection) url.openConnection();
@@ -106,20 +108,36 @@ public class WeatherController {
         id = Math.floor(id * 0.01) * 100; // 100 자리로 보여주기 위해 컨버팅 처리
 
         String regionName = (String) jo.get("name");
+        String regionName_kr_area = "";
+        String name = regionName;
 
-        // 지역명 영어에서 한글로 번역
-        try {
-            regionName = URLEncoder.encode(regionName, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("인코딩 실패", e);
+        // 순수 알파벳으로 표현되는 지역명의 경우 번역 진행, 그외 경우 raw data 그대로 반환
+        if(Pattern.matches("[a-z|A-Z]*", regionName)) {
+            // ..dong 으로 끝나는 한글 지역의 경우 절삭해서 번역 요청 보냄
+            if(Pattern.matches(".+dong", regionName)) {
+                int dongIdx = regionName.lastIndexOf("dong");
+                regionName = regionName.substring(0, dongIdx);
+                regionName_kr_area = "동";
+            }
+
+            // 지역명 영어에서 한글로 번역
+            try {
+                regionName = URLEncoder.encode(regionName, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException("인코딩 실패", e);
+            }
+
+            Map<String, String> requestHeaders = new HashMap<>();
+            requestHeaders.put("X-Naver-Client-Id", clientId);
+            requestHeaders.put("X-Naver-Client-Secret", clientSecret);
+
+            JSONObject papagoResult = new JSONObject(post("https://openapi.naver.com/v1/papago/n2mt", requestHeaders, regionName));
+            name = (String)((JSONObject)((JSONObject) papagoResult.get("message")).get("result")).get("translatedText");
+
+            if(!regionName_kr_area.equals("")) {
+                name += regionName_kr_area;
+            }
         }
-
-        Map<String, String> requestHeaders = new HashMap<>();
-        requestHeaders.put("X-Naver-Client-Id", clientId);
-        requestHeaders.put("X-Naver-Client-Secret", clientSecret);
-
-        JSONObject papagoResult = new JSONObject(post("https://openapi.naver.com/v1/papago/n2mt", requestHeaders, regionName));
-        String name = (String)((JSONObject)((JSONObject) papagoResult.get("message")).get("result")).get("translatedText");
 
         Object temp = mainObj.get("temp");
 
