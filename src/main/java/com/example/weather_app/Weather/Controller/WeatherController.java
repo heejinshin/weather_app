@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -175,6 +176,23 @@ public class WeatherController {
         response.put("air", air);
 
         return response.toString();
+    }
+
+    @RequestMapping(value = "/list-weather")
+    @CrossOrigin(origins = "*")
+    public String listWeather(@RequestBody ArrayList<Weather> listWeather) throws IOException {
+
+        ArrayList<String> result = new ArrayList<>();
+        Weather weather = new Weather();
+
+        for(int i = 0; i < listWeather.size(); i++) {
+            weather.setLatitude(listWeather.get(i).getLatitude());
+            weather.setLongitude(listWeather.get(i).getLongitude());
+            String currWeather = currWeather(weather);
+            result.add(currWeather);
+        }
+
+        return result.toString();
     }
 
     private String post(String apiUrl, Map<String, String> requestHeaders, String text){
