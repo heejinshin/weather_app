@@ -53,9 +53,9 @@ jobs:
         id: deploy-apprunner
         uses: awslabs/amazon-app-runner-deploy@main
         env:
-          weather-API-Key: ${{ WEATHER_API_KEY }}
-          papago-client-ID: ${{ PAPAGO_CLIENT_ID }}
-          papago-client-SECRET: ${{ PAPAGO_CLIENT_SECRET }}
+          weather-API-Key: ${{ secrets.WEATHER_API_KEY }}
+          papago-client-ID: ${{ secrets.PAPAGO_CLIENT_ID }}
+          papago-client-SECRET: ${{ secrets.PAPAGO_CLIENT_SECRET }}
         with:
           service: weather
           image: ${{ steps.build-image.outputs.image }}
