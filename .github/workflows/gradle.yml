@@ -16,6 +16,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Adding secret
+        run: |
+          echo "weather-API-Key=$WEATHER_API_KEY" "papago-client-ID=$PAPAGO_CLIENT_ID" "papago-client-SECRET=$PAPAGO_CLIENT_SECRET" > src/main/resources/application-API-KEY.properties
+          cat src/main/resources/application.properties
+
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
 
@@ -45,18 +50,9 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      - name: Adding secret
-        run: |
-          echo "$WEATHER_API_KEY" "$PAPAGO_CLIENT_ID" "$PAPAGO_CLIENT_SECRET" > src/main/resources/application-API-KEY.properties
-          cat src/main/resources/application.properties
-
       - name: Deploy to App Runner
         id: deploy-apprunner
         uses: awslabs/amazon-app-runner-deploy@main
-        env:
-          weather-API-Key = ${{ secrets.WEATHER_API_KEY }}
-          papago-client-ID = ${{ secrets.PAPAGO_CLIENT_ID }}
-          papago-client-SECRET = ${{ secrets.PAPAGO_CLIENT_SECRET }}
         with:
           service: weather-app
           access-role-arn: ${{ secrets.AWS_CONNECTION_SOURCE_ARN }}
@@ -65,10 +61,6 @@ jobs:
           cpu : 1
           memory : 2
           port: 8080
-          copy-env-vars:
-            weather-API-Key
-            papago-client-ID
-            papago-client-SECRET
           wait-for-service-stability: 1200
       
       - name: App Runner output
