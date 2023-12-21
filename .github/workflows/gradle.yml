@@ -4,6 +4,10 @@ on:
     branches: [ main ] # Trigger workflow on git push to main branch
   workflow_dispatch: # Allow manual invocation of the workflow
 
+env:
+  AWS_REGION: ap-northeast-1
+  ECR_REPOSITORY: weather_app
+
 jobs:  
   deploy:
     runs-on: ubuntu-latest
