@@ -6,6 +6,6 @@ RUN mkdir /work
 
 WORKDIR /work
 
-COPY ./build/libs/weather_app-0.0.1-SNAPSHOT-plain.jar app.jar
+COPY ./build/libs/weather_app-0.0.1-SNAPSHOT.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "/work/app.jar"]
