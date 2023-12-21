@@ -40,10 +40,15 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: weather_app
           IMAGE_TAG: ${{ github.sha }}
-        run: |
+        run:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Adding secret
+        run: |
+          echo "$WEATHER_API_KEY" "$PAPAGO_CLIENT_ID" "$PAPAGO_CLIENT_SECRET" > src/main/resources/application-API-KEY.properties
+          cat src/main/resources/application.properties
 
       - name: Deploy to App Runner
         id: deploy-apprunner
@@ -60,7 +65,7 @@ jobs:
           cpu : 1
           memory : 2
           port: 8080
-          copy-env-vars: /
+          copy-env-vars:
             weather-API-Key
             papago-client-ID
             papago-client-SECRET
