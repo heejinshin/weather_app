@@ -58,14 +58,14 @@ jobs:
         id: deploy-apprunner
         uses: awslabs/amazon-app-runner-deploy@main
         with:
-          service: weather-app
-          access-role-arn: ${{ secrets.AWS_CONNECTION_SOURCE_ARN }}
-          runtime: NODEJS_16
+          service: weather
+          image: ${{ steps.build-image.outputs.image }}
+          access-role-arn: ${{ secrets.ROLE_ARN }}
           region: ${{ secrets.AWS_REGION }}
           cpu : 1
           memory : 2
           port: 8080
-          wait-for-service-stability: 1200
+          wait-for-service-stability: false
       
       - name: App Runner output
         run: echo "App runner output ${{ steps.deploy-apprunner.outputs.service-id }}" 
