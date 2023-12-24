@@ -56,6 +56,7 @@ jobs:
           weather-API-Key: ${{ secrets.WEATHER_API_KEY }}
           papago-client-ID: ${{ secrets.PAPAGO_CLIENT_ID }}
           papago-client-SECRET: ${{ secrets.PAPAGO_CLIENT_SECRET }}
+          KAKAO-REST-API-KEY: ${{ secrets.KAKAO_REST_API_KEY }}
         with:
           service: weather
           image: ${{ steps.build-image.outputs.image }}
@@ -69,6 +70,7 @@ jobs:
             weather-API-Key
             papago-client-ID
             papago-client-SECRET
+            KAKAO-REST-API-KEY
       
       - name: App Runner output
         run: echo "App runner output ${{ steps.deploy-apprunner.outputs.service-id }}" 
