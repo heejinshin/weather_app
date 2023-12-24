@@ -26,11 +26,8 @@ public class WeatherController {
     @Value("${weather-API-Key}")
     private String serviceKey;
 
-    @Value("${papago-client-ID}")
-    private String clientId;
-
-    @Value("${papago-client-SECRET}")
-    private String clientSecret;
+    @Value("${KAKAO-REST-API-KEY}")
+    private String kakaoAPIKey;
 
     @RequestMapping(value = "/curr-weather")
     @CrossOrigin(origins = "*")
@@ -108,37 +105,31 @@ public class WeatherController {
         double id = rowId.doubleValue();
         id = Math.floor(id * 0.01) * 100; // 100 자리로 보여주기 위해 컨버팅 처리
 
-        String regionName = (String) jo.get("name");
-        String regionName_kr_area = "";
-        String name = regionName;
+        // 받아온 좌표로 정확한 주소 보내주기
+        StringBuffer nameBuffer = new StringBuffer();
+        url = new URL(String.format(
+                "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=%s&y=%s",
+                longitude, latitude));
 
-        // 순수 알파벳으로 표현되는 지역명의 경우 번역 진행, 그외 경우 raw data 그대로 반환
-        if(Pattern.matches("[a-z|A-Z]*", regionName)) {
-            // ..dong 으로 끝나는 한글 지역의 경우 절삭해서 번역 요청 보냄
-            if(Pattern.matches(".+dong", regionName)) {
-                int dongIdx = regionName.lastIndexOf("dong");
-                regionName = regionName.substring(0, dongIdx);
-                regionName_kr_area = "동";
-            }
+        con = (HttpURLConnection) url.openConnection();
 
-            // 지역명 영어에서 한글로 번역
-            try {
-                regionName = URLEncoder.encode(regionName, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException("인코딩 실패", e);
-            }
+        con.setRequestMethod("GET");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("Authorization", "KakaoAK " + kakaoAPIKey);
 
-            Map<String, String> requestHeaders = new HashMap<>();
-            requestHeaders.put("X-Naver-Client-Id", clientId);
-            requestHeaders.put("X-Naver-Client-Secret", clientSecret);
+        in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()));
 
-            JSONObject papagoResult = new JSONObject(post("https://openapi.naver.com/v1/papago/n2mt", requestHeaders, regionName));
-            name = (String)((JSONObject)((JSONObject) papagoResult.get("message")).get("result")).get("translatedText");
-
-            if(!regionName_kr_area.equals("")) {
-                name += regionName_kr_area;
-            }
+        while ((inputLine = in.readLine()) != null) {
+            nameBuffer.append(inputLine);
         }
+
+        in.close();
+
+        JSONObject areaJO = new JSONObject(nameBuffer.toString());
+        String areaName = (String)((JSONArray) areaJO.get("documents")).getJSONObject(0).get("region_3depth_name");
+
+        Object name = areaName;
 
         Object temp = mainObj.get("temp");
 
@@ -193,62 +184,5 @@ public class WeatherController {
         }
 
         return result.toString();
-    }
-
-    private String post(String apiUrl, Map<String, String> requestHeaders, String text){
-        System.out.println(text);
-        HttpURLConnection con = connect(apiUrl);
-        String postParams = "source=en&target=ko&text=" + text; //원본언어: 영어 (en) -> 목적언어: 한국어 (kr)
-        try {
-            con.setRequestMethod("POST");
-            for(Map.Entry<String, String> header :requestHeaders.entrySet()) {
-                con.setRequestProperty(header.getKey(), header.getValue());
-            }
-
-            con.setDoOutput(true);
-            try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-                wr.write(postParams.getBytes());
-                wr.flush();
-            }
-
-            int responseCode = con.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) { // 정상 응답
-                return readBody(con.getInputStream());
-            } else {  // 에러 응답
-                return readBody(con.getErrorStream());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("API 요청과 응답 실패", e);
-        } finally {
-            con.disconnect();
-        }
-    }
-
-    private HttpURLConnection connect(String apiUrl){
-        try {
-            URL url = new URL(apiUrl);
-            return (HttpURLConnection)url.openConnection();
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("API URL이 잘못되었습니다. : " + apiUrl, e);
-        } catch (IOException e) {
-            throw new RuntimeException("연결이 실패했습니다. : " + apiUrl, e);
-        }
-    }
-
-    private String readBody(InputStream body){
-        InputStreamReader streamReader = new InputStreamReader(body);
-
-        try (BufferedReader lineReader = new BufferedReader(streamReader)) {
-            StringBuilder responseBody = new StringBuilder();
-
-            String line;
-            while ((line = lineReader.readLine()) != null) {
-                responseBody.append(line);
-            }
-
-            return responseBody.toString();
-        } catch (IOException e) {
-            throw new RuntimeException("API 응답을 읽는데 실패했습니다.", e);
-        }
     }
 }
