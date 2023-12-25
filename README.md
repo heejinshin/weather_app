@@ -8,7 +8,7 @@ No icon
 
 ## 배포 주소
 
-> **웹 사이트 주소: https://weathie.vercel.app/**
+> **웹 사이트 주소: https://weathie.vercel.app/** <br /> **프론트엔드 주소: https://github.com/JeanYoungPark/weather-app**
 
 ## 팀 소개
 
