@@ -1,4 +1,4 @@
-package com.example.weather_app.Weather.domain;
+package com.example.weather_app.Weather.Domain;
 
 public class Weather {
     String latitude;
